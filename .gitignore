@@ -1,0 +1,7 @@
+.venv
+__pycache__
+*.pyc
+terraform/*.zip
+.terragrunt-cache
+.terraform
+.DS_Store

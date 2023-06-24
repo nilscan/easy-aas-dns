@@ -1,0 +1,42 @@
+apiVersion: apiextensions.k8s.io/v1
+kind: CustomResourceDefinition
+metadata:
+  name: dnsrecords.easyaas.dev
+spec:
+  scope: Namespaced
+  group: easyaas.dev
+  names:
+    categories:
+      - easyaas
+    kind: DnsRecord
+    plural: dnsrecords
+    singular: dnsrecord
+    shortNames:
+      - dns
+  versions:
+    - name: v1
+      served: true
+      storage: true
+      schema:
+        openAPIV3Schema:
+          type: object
+          properties:
+            spec:
+              type: object
+              properties:
+                dnsName:
+                  type: string
+                recordType:
+                  type: string
+                targets:
+                  type: array
+                  items:
+                    type: string
+            status:
+              type: object
+              properties:
+                ready:
+                  type: boolean
+                kopf:
+                  type: object
+              x-kubernetes-preserve-unknown-fields: true

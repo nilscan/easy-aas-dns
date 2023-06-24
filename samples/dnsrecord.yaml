@@ -1,0 +1,10 @@
+apiVersion: easyaas.dev/v1
+kind: DnsRecord
+metadata:
+  namespace: easy-aas-dns
+  name: simple
+spec:
+  dnsName: simple.example.com
+  recordType: A
+  targets:
+    - 1.2.3.4

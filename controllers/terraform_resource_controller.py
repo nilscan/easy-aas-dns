@@ -5,8 +5,8 @@ import kubernetes
 import yaml
 
 
-@kopf.on.create('easyaas.dev', 'dnsrecord')
-@kopf.on.update('easyaas.dev', 'dnsrecord')
+@kopf.on.create('core.easyaas.dev', 'dnsrecord')
+@kopf.on.update('core.easyaas.dev', 'dnsrecord')
 def on_change(logger, memo: kopf.Memo, patch, **_):
     job_spec = """
         apiVersion: batch/v1
@@ -19,7 +19,7 @@ def on_change(logger, memo: kopf.Memo, patch, **_):
                     containers:
                         - name: tf
                           image: cytopia/terragrunt
-                          command: ["sh", "-c", "tfswitch && terraform plan"]
+                          command: ["sh", "-c", "tfswitch && terragrunt apply --auto-approve"]
                     restartPolicy: Never
             backoffLimit: 0
             ttlSecondsAfterFinished: 3600

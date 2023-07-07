@@ -8,11 +8,16 @@ include "localstack" {
   expose = true
 }
 
-
 terraform {
-  source = include.root.locals.source_base_url
+  source = "../../resources/dns-record/terraform"
+  # source = include.root.locals.source_base_url
 
-  before_hook "configurable_after_hook" {
+  before_hook "install_terraform" {
+    commands = ["init"]
+    execute  = ["tfswitch", "--default", "$(tfswitch --show-latest)"]
+  }
+
+  before_hook "render_localstack_provider" {
     commands = ["init"]
     execute  = include.localstack.locals.after_hook_execute
   }

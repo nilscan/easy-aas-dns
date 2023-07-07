@@ -1,12 +1,13 @@
 #!/bin/bash
+set -oeuf pipefail
 script_dir=$(dirname $0)
-assets_dir=$(realpath $script_dir/../terraform)
+assets_dir=$(realpath $script_dir/../resources/dns-record/terraform)
 cd $assets_dir
 for dir in $(find . -type d | tail +2); do
   dir=$(realpath $dir)
   pushd $dir
   archive_file=$assets_dir/$(basename $dir).zip
-  rm -f $archive_file
+  # rm -f $archive_file
   zip $archive_file *
   popd
 done

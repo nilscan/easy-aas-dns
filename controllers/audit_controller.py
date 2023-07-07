@@ -2,7 +2,7 @@ import kopf
 
 EVENT = 25
 
-@kopf.on.create("easyaas.dev", kopf.EVERYTHING)
+@kopf.on.create(category="easyaas", kopf.EVERYTHING)
 def audit_create(logger, body, spec, **kwargs):
     event = {
         "event": "create",
@@ -12,7 +12,7 @@ def audit_create(logger, body, spec, **kwargs):
     }
     logger.log(EVENT, event)
 
-@kopf.on.update("easyaas.dev", kopf.EVERYTHING)
+@kopf.on.update(category="easyaas", kopf.EVERYTHING)
 def audit_update(logger, body, old, new, diff, **kwargs):
     event = {
         "event": "update",
@@ -22,7 +22,7 @@ def audit_update(logger, body, old, new, diff, **kwargs):
     }
     logger.info(event)
 
-@kopf.on.delete("easyaas.dev", kopf.EVERYTHING)
+@kopf.on.delete(category="easyaas", kopf.EVERYTHING)
 def audit_delete(logger, body, spec, **kwargs):
     event = {
         "event": "delete",

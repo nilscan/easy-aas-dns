@@ -2,8 +2,7 @@ zip:
 	scripts/zip
 
 repo-server:
-	cd reposerver
-	docker compose -f reposerver/docker-compose.yaml up -d
+	cd local-testing && docker compose up -d
 
 poetry:
 	poetry install

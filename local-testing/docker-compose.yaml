@@ -12,3 +12,14 @@ services:
     volumes: 
       - "${TEMPDIR:-/tmp/localstack}:/tmp/localstack"
       - "/var/run/docker.sock:/var/run/docker.sock"
+
+  git-repo:
+    build:
+      context: ..
+      dockerfile: local-testing/repository.Dockerfile
+    ports:
+      - 8080:8080
+    volumes:
+      - ./server_blocks:/opt/bitnami/openresty/nginx/conf/server_blocks:ro
+      - /var/log/easyaas:/easyaas/logs
+      - ../terraform:/easyaas/terraform

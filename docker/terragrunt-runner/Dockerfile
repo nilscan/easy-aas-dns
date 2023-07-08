@@ -32,4 +32,7 @@ RUN mkdir -p $TERRAFORM_ROOT_DIR && chown tfuser:tfuser $TERRAFORM_ROOT_DIR
 USER tfuser
 WORKDIR $TERRAFORM_ROOT_DIR
 
+# Preinstall the latest terraform
+RUN tfswitch --latest
+
 ENTRYPOINT ["/app/run.sh"]

@@ -1,0 +1,51 @@
+  apiVersion: k3d.io/v1alpha4
+  kind: Simple
+  metadata:
+    name: easyaas
+  kubeAPI:
+    host: "k3d-easyaas.web" # important for the `server` setting in the kubeconfig
+    hostPort: "20443"
+  network: k3d-bridge
+  servers: 1
+  options:
+    k3d:
+      disableImageVolume: false
+      disableLoadbalancer: false
+      disableRollback: false
+      loadbalancer:
+        configOverrides:
+          - settings.workerConnections=2048
+      timeout: 60000000000
+      wait: true
+    k3s:
+      extraArgs:
+        - arg: --cluster-cidr=10.69.20.0/24
+          nodeFilters:
+            - server:*
+        - arg: --service-cidr=10.70.20.0/24
+          nodeFilters:
+            - server:*
+        - arg: --no-deploy=traefik
+          nodeFilters:
+            - server:*
+    kubeconfig:
+      switchCurrentContext: true
+      updateDefaultKubeconfig: true
+    runtime:
+      HostPidMode: false
+  ports:
+    - nodeFilters:
+        - loadbalancer
+      port: 10080:80
+  registries:
+    # use:
+    #   - k3d-registry.web:12345
+    create:
+      name: easyaas-registry.web
+      host: 0.0.0.0
+      hostPort: "12345"
+  volumes:
+    - nodeFilters:
+        - server:0
+        - agent:*
+      volume: /var/k3d/shared:/var/k3d/shared

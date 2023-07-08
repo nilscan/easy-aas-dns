@@ -5,8 +5,8 @@ import kubernetes
 import yaml
 
 
-@kopf.on.create('easyaas.dev', 'terraformresource')
-@kopf.on.update('easyaas.dev', 'terraformresource')
+@kopf.on.create('core.easyaas.dev', 'terraformresource')
+@kopf.on.update('core.easyaas.dev', 'terraformresource')
 def on_change(logger, memo: kopf.Memo, patch, **_):
     """
     Deploy a new Terraform Resource controller
@@ -14,29 +14,7 @@ def on_change(logger, memo: kopf.Memo, patch, **_):
     This will run a new kopf deployment of `terraform_resource_controller` to
     watch over a specific CRD and run terraform to apply changes to it
     """
-    job_spec = """
-        apiVersion: apps/v1
-        kind: Job
-        metadata:
-            name: 
-        spec:
-            template:
-                spec:
-                    containers:
-                        - name: tf
-                          image: cytopia/terragrunt
-                          command: ["sh", "-c", "tfswitch && terragrunt apply --auto-approve"]
-                    restartPolicy: Never
-            backoffLimit: 0
-            ttlSecondsAfterFinished: 3600
-    """
-
-    job = yaml.safe_load(job_spec)
-    kopf.adopt([job], nested="spec.template", forced=True)
-
-    jobs = kubernetes.utils.create_from_yaml(memo.kubernetes_client, yaml_objects=[job])
-    logger.info(jobs)
-
+    pass
 
 @kopf.on.startup()
 def configure(memo: kopf.Memo, settings: kopf.OperatorSettings, **_):

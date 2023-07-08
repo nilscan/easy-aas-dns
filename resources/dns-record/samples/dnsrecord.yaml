@@ -1,7 +1,9 @@
 apiVersion: easyaas.dev/v1
 kind: DnsRecord
 metadata:
-  namespace: easy-aas-dns
+  labels:
+    domain: simple.example.com
+  namespace: easyaas-dns
   name: simple
 spec:
   dnsName: simple.example.com

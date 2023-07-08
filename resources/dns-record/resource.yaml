@@ -1,9 +1,0 @@
-apiVersion: easyaas.dev/v1
-kind: TerraformResource
-metadata:
-  name: DnsRecord
-spec:
-  terraform:
-    source: http://host.k3d.local//dns-record
-    version: ~> 1
-  crd: dnsrecord.core.easyaas.dev

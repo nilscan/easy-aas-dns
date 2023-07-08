@@ -1,0 +1,9 @@
+apiVersion: core.easyaas.dev/v1
+kind: TerraformResource
+metadata:
+  name: dnsrecords
+spec:
+  terraform:
+    source: github.com/nilscan/easy-aas-dns//resources/dns-record/terraform?ref=main
+  crd: dnsrecords.easyaas.dev
+  

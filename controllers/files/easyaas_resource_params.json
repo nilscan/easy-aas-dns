@@ -1,0 +1,4 @@
+{
+  "source": "app.terraform.io/hashicorp/consul/aws",
+  "version": "0.24"
+}

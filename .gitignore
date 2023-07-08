@@ -5,3 +5,4 @@ terraform/*.zip
 .terragrunt-cache
 .terraform
 .DS_Store
+controllers/files/.terraform.lock.hcl

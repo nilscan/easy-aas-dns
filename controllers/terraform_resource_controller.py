@@ -37,7 +37,7 @@ def indent(str, amount = 8):
 
 def create_configmap(logger, memo, name, spec, **_):
     easyaas_resource_params = json.dumps(dict(config['spec']['terraform']))
-    resource_params = json.dumps(dict(spec))
+    resource_spec = json.dumps(dict(spec))
     with open('controllers/files/terragrunt.hcl', 'r') as file:
         terragrunt_config = file.read()
 
@@ -49,11 +49,11 @@ metadata:
 data:
     easyaas_resource_params.json: |
 {easyaas_resource_params}
-    resource_params.json: |
-{resource_params}
+    resource_spec.json: |
+{resource_spec}
     terragrunt.hcl: |
 {terragrunt_config}
-    """).format(name=name, easyaas_resource_params=indent(easyaas_resource_params), resource_params=indent(resource_params), terragrunt_config=indent(terragrunt_config))
+    """).format(name=name, easyaas_resource_params=indent(easyaas_resource_params), resource_spec=indent(resource_spec), terragrunt_config=indent(terragrunt_config))
 
     logger.info(configmap_spec)
 

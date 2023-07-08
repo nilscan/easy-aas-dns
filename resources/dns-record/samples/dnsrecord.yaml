@@ -7,6 +7,6 @@ metadata:
   name: simple
 spec:
   dnsName: simple.example.com
-  recordType: A
-  targets:
+  type: A
+  records:
     - 1.2.3.4

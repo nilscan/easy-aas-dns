@@ -1,8 +1,13 @@
 variable "dnsName" {
   type = string
 }
+
+variable "type" {
+  type = string
+}
+
 variable "records" {
-  type = list(any)
+  type = list(string)
 }
 
 # AWS

@@ -26,9 +26,9 @@ spec:
               properties:
                 dnsName:
                   type: string
-                recordType:
+                type:
                   type: string
-                targets:
+                records:
                   type: array
                   items:
                     type: string

@@ -6,7 +6,9 @@ metadata:
     managed-by: dnsrecords.easyaas.dev
 spec:
   crd: dnsrecords.easyaas.dev
+  opa:
+    source: ./opa
   terraform:
-    # source: github.com/nilscan/easy-aas-dns//resources/dns-record/terraform
-    source: tfr://host.k3d.internal:8080/dns-record?version=~>1
+    source: github.com/nilscan/easy-aas-dns//resources/dns-record/terraform
+    # source: tfr://host.k3d.internal:8080/dns-record?version=~>1
     # source: http://host.k3d.internal:8080/resources/dns-record.zip

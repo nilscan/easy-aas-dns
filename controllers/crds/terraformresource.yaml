@@ -29,8 +29,6 @@ spec:
                   properties:
                     source:
                       type: string
-                    version:
-                      type: string
                 crd:
                   type: string
                 extraEnvVariables:

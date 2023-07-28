@@ -6,3 +6,7 @@ terraform/*.zip
 .terraform
 .DS_Store
 controllers/files/.terraform.lock.hcl
+/tmp/
+/okta/
+/local-testing/k3d/easyaas-okta.yaml
+resources/dns-record.zip

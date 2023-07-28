@@ -13,10 +13,25 @@ spec:
     singular: dnsrecord
     shortNames:
       - dns
+
   versions:
     - name: v1
       served: true
       storage: true
+
+      additionalPrinterColumns:
+        - name: Dns Name
+          type: string
+          description: The number of pods launched by the MyApp
+          jsonPath: .spec.dnsName
+        - name: Ready
+          type: string
+          description: Whether the record is fully registered
+          jsonPath: .status.conditions[?(@.type == 'Ready')].status
+        - name: Reason
+          type: string
+          description: Reason why the record is not ready
+          jsonPath: .status.conditions[?(@.type == 'Ready')].reason
       schema:
         openAPIV3Schema:
           type: object

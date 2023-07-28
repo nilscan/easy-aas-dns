@@ -22,4 +22,4 @@ services:
     volumes:
       - ./server_blocks:/opt/bitnami/openresty/nginx/conf/server_blocks:ro
       - /var/log/easyaas:/easyaas/logs
-      - ../terraform:/easyaas/terraform
+      - ../resources:/terraform/resources

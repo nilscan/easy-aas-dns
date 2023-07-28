@@ -7,7 +7,7 @@ import base64
 import textwrap
 import json
 
-from .helpers import current_timestamp, update_condition
+from .helpers import current_timestamp, update_condition, load_from_yaml, update_array
 from .consts import JOB_FINALIZER
 
 WATCHED_RESOURCE_GROUP = os.environ.get('EASYAAS_WATCHED_RESOURCE_GROUP', 'easyaas.dev')
@@ -136,12 +136,7 @@ def watch_job(logger, meta: kopf.Meta, namespace, name, status: kopf.Status, **_
 @kopf.on.update(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
 def on_change_terraformresource(**ctx):
     # Create a configmap with the terragrun config and resource spec
-    configmaps = create_configmap(**ctx)
-    if len(configmaps) == 0:
-        ctx.logger.info('Error creating configmap')
-        return None
-    configmap = configmaps[0][0]
-
+    configmap = create_configmap(**ctx)
     # Run terragrunt job
     create_job(configmap.metadata.name, **ctx)
 
@@ -160,7 +155,7 @@ def on_status_update_terraformresource(patch, status, **ctx):
     ready_message = ""
     ready_reason = ""
     for name, job in jobs.items():
-        if job['failed'] == True:
+        if job.get('failed', None) == True:
             ready_status = 'False'
             ready_message = job['message']
             ready_reason = job['reason']
@@ -196,71 +191,41 @@ def b64encode(str):
 def indent(str, amount = 8):
     return textwrap.indent(str, amount * ' ')
 
-def create_configmap(logger, memo, name, spec, **_):
+def create_configmap(logger, memo, namespace, name, spec, **_):
     easyaas_resource_params = json.dumps(dict(terraformresource_config['terraform']))
     resource_spec = json.dumps(dict(spec))
     with open('controllers/files/terragrunt.hcl', 'r') as file:
         terragrunt_config = file.read()
 
-    configmap_spec = textwrap.dedent("""
-apiVersion: v1
-kind: ConfigMap
-metadata:
-    generateName: {name}
-    labels:
-      managed-by: {managed_by}
-data:
-    easyaas_resource_params.json: |
-{easyaas_resource_params}
-    resource_spec.json: |
-{resource_spec}
-    terragrunt.hcl: |
-{terragrunt_config}
-    """).format(name=name, managed_by=MANAGED_BY, easyaas_resource_params=indent(easyaas_resource_params), resource_spec=indent(resource_spec), terragrunt_config=indent(terragrunt_config))
-
-    logger.info(configmap_spec)
-
-    configmap = yaml.safe_load(configmap_spec)
+    configmap = kubernetes.client.V1ConfigMap(
+        metadata=kubernetes.client.V1ObjectMeta(
+            generate_name=name,
+        ),
+        data = {
+            'easyaas_resource_params.json': easyaas_resource_params,
+            'resource_spec.json': resource_spec,
+            'terragrunt.hcl': terragrunt_config
+        }
+    )
     kopf.adopt([configmap], nested="spec.template", forced=True)
-    return kubernetes.utils.create_from_yaml(memo.kubernetes_client, yaml_objects=[configmap])
+    kopf.label([configmap], {'managed-by': MANAGED_BY})
 
-def create_job(configmap_name, memo, patch, **_):
-    job_spec = """
-        apiVersion: batch/v1
-        kind: Job
-        metadata:
-            name: terraform
-            labels:
-                managed-by: {managed_by}
-            finalizers:
-                - {job_finalizer}
-        spec:
-            template:
-                metadata:
-                    labels:
-                        managed-by: {managed_by}
-                spec:
-                    containers:
-                        - name: tf
-                          image: easyaas-registry.web:12345/terragrunt-runner
-                          imagePullPolicy: Always
-                          env:
-                            - name: TERRAGRUNT_CONFIG
-                              value: /app/terragrunt-config/terragrunt.hcl
-                          volumeMounts:
-                            - name: terragrunt-config
-                              mountPath: /app/terragrunt-config
+    return kubernetes.client.CoreV1Api().create_namespaced_config_map(namespace, body=configmap)
 
-                    restartPolicy: Never
-                    volumes:
-                      - name: terragrunt-config
-                        configMap:
-                          name: {configmap_name}
-            backoffLimit: 0
-            ttlSecondsAfterFinished: 3600
-    """.format(managed_by=MANAGED_BY, job_finalizer=JOB_FINALIZER, configmap_name=configmap_name)
+def create_job(configmap_name, namespace, **_):
+    with open('controllers/kubernetes_resources/job.yaml', 'r') as f:
+        job = load_from_yaml(f)
 
-    job = yaml.safe_load(job_spec)
     kopf.adopt([job], nested="spec.template", forced=True)
+    kopf.label([job], {'managed-by': MANAGED_BY}, nested="spec.template")
+    update_array(job.spec.template.spec.volumes,
+                 where={'name': 'terragrunt-config'},
+                 value=kubernetes.client.V1Volume(
+                    name='terragrunt-config',
+                    config_map={
+                        'name': configmap_name
+                    }
+                 )
+    )
 
-    kubernetes.utils.create_from_yaml(memo.kubernetes_client, yaml_objects=[job])
+    kubernetes.client.BatchV1Api().create_namespaced_job(namespace, body=job)

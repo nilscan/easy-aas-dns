@@ -1,0 +1,13 @@
+# yaml-language-server:  $schema=../_build/jsonschema4.yaml
+apiVersion: easyaas.dev/v1
+kind: DnsRecord
+metadata:
+  labels:
+    domain: simple.example.com
+  namespace: easyaas-dns
+  name: invalid-name
+spec:
+  dnsName: ThisIsNotAValidName
+  type: A
+  records:
+    - 1.2.3.4

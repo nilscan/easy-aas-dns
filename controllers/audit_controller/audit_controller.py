@@ -4,9 +4,10 @@ EVENT = 25
 
 # @kopf.on.create("easyaas.dev", kopf.EVERYTHING)
 @kopf.on.create(category="easyaas")
-def audit_create(logger, body, spec, **kwargs):
+def audit_create(logger, meta, spec, **kwargs):
     event = {
         "event": "create",
+        "objectMeta": dict(meta),
         "new": {
             "spec": dict(spec),
         },
@@ -14,9 +15,10 @@ def audit_create(logger, body, spec, **kwargs):
     logger.log(EVENT, event)
 
 @kopf.on.update(category="easyaas")
-def audit_update(logger, body, old, new, diff, **kwargs):
+def audit_update(logger, meta, old, new, diff, **kwargs):
     event = {
         "event": "update",
+        "objectMeta": dict(meta),
         "old": old,
         "new": new,
         "diff": tuple(diff),
@@ -24,9 +26,10 @@ def audit_update(logger, body, old, new, diff, **kwargs):
     logger.info(event)
 
 @kopf.on.delete(category="easyaas")
-def audit_delete(logger, body, spec, **kwargs):
+def audit_delete(logger, meta, spec, **kwargs):
     event = {
         "event": "delete",
+        "objectMeta": dict(meta),
         "old": {
             "spec": dict(spec),
         },

@@ -12,6 +12,8 @@ A Resource is a composed of a few elements:
 
 ## Setup
 
+### Install Easyaas
+
 ```shell
 
 pip install poetry
@@ -19,8 +21,21 @@ poetry shell
 poetry install
 ```
 
-## Run
+### Install opa-kubemgmt
+
+Validation of the CRDs can be done by any admission controller.
+This is an example using [open-policy-agent/kube-mgmt](https://github.com/open-policy-agent/kube-mgmt)
 
 ```shell
-make run
+helm repo add opa https://open-policy-agent.github.io/kube-mgmt/charts
+helm repo update
+helm upgrade --install --namespace opa-kubemgmt --create-namespace opa-kubemgmt opa/opa-kube-mgmt --set admissionController.enabled=true --set mgmt.namespaces=easyaas-policies --set admissionController.failurePolicy=Fail
+```
+
+## Run
+
+EasyAas uses [just](https://github.com/casey/just) to define and run project-related commands
+
+```shell
+just run
 ```

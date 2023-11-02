@@ -10,3 +10,4 @@ controllers/files/.terraform.lock.hcl
 /okta/
 /local-testing/k3d/easyaas-okta.yaml
 resources/dns-record.zip
+resources/dns-record/_build

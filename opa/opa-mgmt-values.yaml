@@ -1,0 +1,60 @@
+#FIXME: Setup proper auth
+authz:
+  enabled: false # Not sure how to configure auth for the admission webhook, disabling for now
+  mgmtToken:
+    secretName: opa-authz
+
+bootstrapPolicies:
+  admission: |
+    package system
+
+    import data.kubernetes.admission
+
+    main := {
+      "apiVersion": "admission.k8s.io/v1",
+      "kind": "AdmissionReview",
+      "response": response,
+    }
+
+    default uid := ""
+
+    uid := input.request.uid
+
+    response := {
+        "allowed": false,
+        "uid": uid,
+        "status": {
+            "message": reason,
+        },
+    } {
+        reason = concat(", ", admission.deny)
+        reason != ""
+    }
+
+    else := {"allowed": true, "uid": uid}
+
+
+admissionController:
+  enabled: true
+  rules:
+    - operations: ["*"]
+      apiGroups:
+        - easyaas.dev
+        - core.easyaas.dev
+      apiVersions: ["*"]
+      resources: ["*"]
+
+useHttps: true
+generateCerts: false
+CA: |
+  -----BEGIN CERTIFICATE-----
+  <CA>
+  -----END CERTIFICATE-----
+cert: |
+  -----BEGIN CERTIFICATE-----
+  <cert>
+  -----END CERTIFICATE-----
+key: |
+  -----BEGIN PRIVATE KEY-----
+  <private key>
+  -----END PRIVATE KEY-----

@@ -3,7 +3,7 @@ package easyaas.dnsrecord
 operations := {"CREATE", "UPDATE"}
 
 deny[msg] {
-	input.request.kind == "DnsRecord"
+	input.request.object.kind == "DnsRecord"
 	operations[input.request.operation]
 	host := input.request.object.spec.dnsName
 

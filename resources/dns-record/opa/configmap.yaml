@@ -1,0 +1,22 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  namespace: easyaas-policies
+  name: dns-record
+  labels:
+    openpolicyagent.org/policy: rego
+data:
+  validate_name.rego: |
+    package kubernetes.admission
+
+    operations := {"CREATE", "UPDATE"}
+
+    deny[msg] {
+      input.request.object.kind == "DnsRecord"
+      operations[input.request.operation]
+      host := input.request.object.spec.dnsName
+
+      not regex.match("^([a-z0-9-.]{1,63})$", host)
+
+      msg := sprintf("invalid ingress host %q", [host])
+    }

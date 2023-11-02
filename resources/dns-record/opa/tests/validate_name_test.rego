@@ -3,9 +3,9 @@ package easyaas.dnsrecord
 test_valid_name {
   record := {
     "request": {
-      "kind": "DnsRecord",
       "operation": "CREATE",
       "object": {
+        "kind": "DnsRecord",
         "spec": {
           "dnsName": "valid-name"
         }
@@ -20,9 +20,9 @@ test_valid_name {
 test_invalid_name {
   record := {
     "request": {
-      "kind": "DnsRecord",
       "operation": "CREATE",
       "object": {
+        "kind": "DnsRecord",
         "spec": {
           "dnsName": "invalid_name"
         }

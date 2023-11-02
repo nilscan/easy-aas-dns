@@ -1,10 +1,18 @@
+default:
+	@just --choose
+
 build: zip build-docker
 local-dev: zip repo-server poetry run
+
+install:
+  kubectl apply -f controllers/crds
+  kubectl apply -f resources/dns-record
 
 zip:
 	local-testing/scripts/zip
 
 build-docker:
+  docker build -t easyaas-registry.web:12345/easyaas .; and docker push easyaas-registry.web:12345/easyaas
 	cd docker/terragrunt-runner && docker build -t easyaas-registry.web:12345/terragrunt-runner . && docker push easyaas-registry.web:12345/terragrunt-runner
 
 create-k3d-cluster:
@@ -17,7 +25,7 @@ poetry:
 	poetry install
 
 test:
-	PYTHONPATH=. pytest 
+	PYTHONPATH=. poetry run pytest 
 
 run:
-	PYTHONPATH=. poetry run kopf run -m controllers.audit_controller -m controllers.terraform_resource_controller --log-format=json
+	PYTHONPATH=. bin/run_controllers.sh

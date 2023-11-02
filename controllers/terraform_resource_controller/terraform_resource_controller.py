@@ -2,12 +2,9 @@ import os
 import kopf
 import logging
 import kubernetes
-import yaml
-import base64
-import textwrap
 import json
 
-from ..helpers import update_condition, load_from_yaml, update_array
+from ..helpers import update_condition, load_from_yaml, update_array, current_file_path
 from .consts import WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME, MANAGED_BY
 
 # Controller configuration
@@ -40,6 +37,7 @@ def on_change_terraformresource(**ctx):
     # Run terragrunt job
     create_job(configmap.metadata.name, **ctx)
 
+
 # Handle status updates from children
 @kopf.on.resume(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
 @kopf.on.update(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
@@ -51,9 +49,9 @@ def on_status_update_terraformresource(patch, status, **ctx):
         patch['status'] = {}
 
     # Update the conditions
-    ready_status = ""
+    ready_status = "False"
     ready_message = ""
-    ready_reason = ""
+    ready_reason = "Initializing"
     for name, job in jobs.items():
         if job.get('failed', None) == True:
             ready_status = 'False'
@@ -79,19 +77,18 @@ def on_status_update_terraformresource(patch, status, **ctx):
         'jobs': jobs,
     }
 
+
 # Reconcile deletes
 @kopf.on.delete(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
 def on_delete_terraformresource(**ctx):
     # TODO: Implement
     pass
 
-def b64encode(str):
-    return base64.b64encode(str.encode('ascii')).decode()
 
 def create_configmap(logger, memo, namespace, name, spec, **_):
     easyaas_resource_params = json.dumps(dict(terraformresource_config['terraform']))
     resource_spec = json.dumps(dict(spec))
-    with open('controllers/files/terragrunt.hcl', 'r') as file:
+    with open('{}/files/terragrunt.hcl'.format(current_file_path()), 'r') as file:
         terragrunt_config = file.read()
 
     configmap = kubernetes.client.V1ConfigMap(
@@ -109,8 +106,9 @@ def create_configmap(logger, memo, namespace, name, spec, **_):
 
     return kubernetes.client.CoreV1Api().create_namespaced_config_map(namespace, body=configmap)
 
+
 def create_job(configmap_name, namespace, **_):
-    with open('controllers/terraform_resource/files/job.yaml', 'r') as f:
+    with open('{}/files/job.yaml'.format(current_file_path()), 'r') as f:
         job = load_from_yaml(f)
 
     kopf.adopt([job], nested="spec.template", forced=True)

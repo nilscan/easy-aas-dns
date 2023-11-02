@@ -17,3 +17,5 @@ terraform {
     execute  = ["tfswitch", "--default", "$(tfswitch --show-latest)"]
   }
 }
+
+# TODO: inject backend config

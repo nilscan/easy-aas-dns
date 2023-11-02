@@ -1,8 +1,10 @@
 from datetime import datetime
+import os
+import inspect
 from zoneinfo import ZoneInfo
-import kubernetes
 import yaml, json
-import io
+
+import kubernetes
 
 class TerraformResourceException(Exception):
     pass
@@ -110,3 +112,10 @@ def update_array(obj, where=None, value=None, path=None):
                 # Otherwise call the property
                 if getattr(array_elt, cond) == cond_v:
                     current_obj[idx] = value
+
+def b64encode(str):
+    return base64.b64encode(str.encode('ascii')).decode()
+
+def current_file_path():
+    abs_path = os.path.abspath((inspect.stack()[1])[1])
+    return os.path.dirname(abs_path)

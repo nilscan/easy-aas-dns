@@ -1,0 +1,47 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: easyaas-resource-controller
+rules:
+  - apiGroups:
+      - batch
+    resources: ["jobs"]
+    verbs: ["get", "list", "create", "patch", "watch"]
+  - apiGroups:
+      - easyaas.dev
+      - core.easyaas.dev
+
+    resources: ["*"]
+    verbs: ["get", "watch", "list", "patch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: easyaas-terraform-resource-controller
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "easyaas.serviceAccountName" . }} 
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: easyaas-resource-controller
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: easyaas-admin-deleteme
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "easyaas.serviceAccountName" . }} 
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: cluster-admin
+
+

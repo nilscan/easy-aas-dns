@@ -12,3 +12,4 @@ controllers/files/.terraform.lock.hcl
 resources/dns-record.zip
 resources/dns-record/_build
 philosophy.md
+.vscode/settings.json

@@ -13,4 +13,4 @@ cd $TERRAFORM_ROOT_DIR/$TERRAFORM_DIR
 TERRAGRUNT_ACTION=${1:-apply}
 
 # Run terragrunt
-terragrunt $TERRAGRUNT_ACTION
+terragrunt $TERRAGRUNT_ACTION --terragrunt-non-interactive -auto-approve

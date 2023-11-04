@@ -8,7 +8,7 @@ spec:
       containers:
         - name: tf
           image: easyaas-registry.web:12345/terragrunt-runner
-          imagePullPolicy: Always
+          imagePullPolicy: Never # Import images with just import-docker
           env:
             - name: TERRAGRUNT_CONFIG
               value: /app/terragrunt-config/terragrunt.hcl

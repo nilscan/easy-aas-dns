@@ -17,13 +17,15 @@ def configure(memo: kopf.Memo, settings: kopf.OperatorSettings, **_):
     settings.posting.level = int(os.environ.get("EASYAAS_LOG_LEVEL", logging.ERROR))
 
     # Initialize the k8s client
-    kubernetes.config.load_kube_config(config_file='~/.kube/config', context="k3d-easyaas")
-    memo.kubernetes_client = kubernetes.client.api_client.ApiClient()
+    try:
+        kubernetes.config.load_incluster_config()
+    except kubernetes.config.ConfigException:
+        kubernetes.config.load_kube_config(config_file='~/.kube/config', context="k3d-easyaas")
 
 
-# Resource the resource config from the CR
+# Read the resource config from the CR
 terraformresource_config = {}
-@kopf.on.event('core.easyaas.dev', 'terraformresource', labels={'managed-by': MANAGED_BY})
+@kopf.on.event('core.easyaas.dev', 'terraformresources', field='metadata.name', value=WATCHED_RESOURCE_NAME)
 def watch_terraformresource(spec, **_):
     terraformresource_config.update(dict(spec))
 
@@ -85,9 +87,18 @@ def on_delete_terraformresource(**ctx):
     pass
 
 
-def create_configmap(logger, memo, namespace, name, spec, **_):
-    easyaas_resource_params = json.dumps(dict(terraformresource_config['terraform']))
-    resource_spec = json.dumps(dict(spec))
+def create_configmap(namespace, name, spec, meta, **_):
+    easyaas_resource_params = dict(terraformresource_config['terraform'])
+    resource_meta = dict(meta)
+    resource_spec = dict(spec)
+
+    # Inject additional values to the resource spec
+    # This will be added to the terraform.tfvars but doesn't cause issues
+    # if the template doesn't define the corresponding variables
+    resource_spec['metadataName'] = meta.name
+    resource_spec['metadataLabels'] = dict(meta.labels)
+    resource_spec['metadataAnnotations'] = dict(meta.annotations)
+
     with open('{}/files/terragrunt.hcl'.format(current_file_path()), 'r') as file:
         terragrunt_config = file.read()
 
@@ -96,8 +107,9 @@ def create_configmap(logger, memo, namespace, name, spec, **_):
             generate_name=name,
         ),
         data = {
-            'easyaas_resource_params.json': easyaas_resource_params,
-            'resource_spec.json': resource_spec,
+            'easyaas_resource_params.json': json.dumps(easyaas_resource_params),
+            'resource_meta.json': json.dumps(resource_meta),
+            'resource_spec.json': json.dumps(resource_spec),
             'terragrunt.hcl': terragrunt_config
         }
     )

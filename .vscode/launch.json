@@ -13,7 +13,7 @@
       "args": [
         "run",
         "-m",
-        "controllers.resource_controller"
+        "controllers.controller_manager"
       ],
       "env": {
         "PYTHONPATH": "${workspaceFolder}${pathSeparator}${env:PYTHONPATH}"

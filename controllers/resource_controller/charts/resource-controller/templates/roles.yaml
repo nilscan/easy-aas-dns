@@ -1,0 +1,57 @@
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRole
+metadata:
+  name: {{ .Values.resource.name }}-controller
+rules:
+  # Allow create and watch on jobs for resource creation
+  - apiGroups:
+      - batch
+    resources:
+      - jobs
+    verbs: ["get", "list", "watch", "create"]
+  - apiGroups:
+      - ""
+    resources:
+      - configmaps
+    verbs: ["get", "list", "watch", "create", "delete"]
+
+  # Allow reading the terraformresources definition
+  - apiGroups:
+      - core.easyaas.dev
+    resources:
+      - terraformresources
+    # resourceNames:
+    #   - {{ .Values.resource.name }}s
+    
+    verbs: ["get", "list", "watch"]
+
+  # Allow readonly actions on the resource CRs
+  - apiGroups:
+      - {{ .Values.resource.group }}
+    resources:
+      - {{ .Values.resource.name }}
+    verbs: ["get", "list", "watch", "patch"]
+
+  # Allow read and patch on the CR status
+  - apiGroups:
+      - {{ .Values.resource.group }}
+    resources:
+      - {{ .Values.resource.name }}/status
+    verbs: ["get", "patch"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+  name: {{ .Values.resource.name }}-controller
+subjects:
+  - kind: ServiceAccount
+    name: {{ include "resource-controller.serviceAccountName" . }} 
+    namespace: {{ .Release.Namespace }}
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: ClusterRole
+  name: {{ .Values.resource.name }}-controller
+
+

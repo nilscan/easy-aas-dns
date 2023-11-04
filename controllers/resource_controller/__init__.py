@@ -1,0 +1,1 @@
+import controllers.resource_controller.resource_controller

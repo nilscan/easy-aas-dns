@@ -2,7 +2,7 @@ default:
 	@just --choose
 
 build: zip build-docker
-local-dev: zip repo-server poetry run
+local-dev: zip repo-server poetry run-all
 
 install:
   kubectl apply -f controllers/crds
@@ -30,5 +30,10 @@ poetry:
 test:
 	PYTHONPATH=. poetry run pytest 
 
-run:
+run-controllers:
 	PYTHONPATH=. bin/run_controllers.sh
+
+run-tfresource:
+	PYTHONPATH=. bin/run_terraform_controller.sh
+
+run-all: run-controllers run-tfresource

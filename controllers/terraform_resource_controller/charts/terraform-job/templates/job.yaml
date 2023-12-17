@@ -1,0 +1,33 @@
+apiVersion: batch/v1
+kind: Job
+metadata:
+  name: {{ include "terraform-job.fullname" . }}
+  annotations:
+    helm.sh/hook: post-install,post-upgrade
+    helm.sh/hook-delete-policy: before-hook-creation # Keep the job until we need to run a new one
+  labels:
+    managed-by: {{ .Values.managedBy }}
+spec:
+  template:
+    metadata:
+      labels:
+        managed-by: {{ .Values.managedBy }}
+    spec:
+      containers:
+        - name: tf
+          image: easyaas-registry.web:12345/terragrunt-runner
+          imagePullPolicy: Never # Import images with just import-docker
+          env:
+            - name: TERRAGRUNT_CONFIG
+              value: {{ default .Values.easyaasResourceParams.terragruntFile "/app/terragrunt-config/terragrunt.hcl" }}
+          volumeMounts:
+            - name: terragrunt-config
+              mountPath: /app/terragrunt-config
+      serviceAccountName: {{ dig "serviceAccount" "default" .Values.easyaasResourceParams }}
+      restartPolicy: Never
+      volumes:
+        - name: terragrunt-config
+          configMap:
+            name:  {{ .Values.name }}-{{ .Release.Revision }}
+  backoffLimit: 0
+  ttlSecondsAfterFinished: 0 # Job will be deleted by helm

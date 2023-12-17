@@ -12,5 +12,8 @@ cd $TERRAFORM_ROOT_DIR/$TERRAFORM_DIR
 
 TERRAGRUNT_ACTION=${1:-apply}
 
+# Switch to the proper version of terraform
+tfswitch --default=$(tfswitch --show-latest)
+
 # Run terragrunt
 terragrunt $TERRAGRUNT_ACTION --terragrunt-non-interactive -auto-approve

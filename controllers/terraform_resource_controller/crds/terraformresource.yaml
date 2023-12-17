@@ -31,6 +31,19 @@ spec:
                       type: string
                 crd:
                   type: string
+                serviceAccount:
+                  type: string
+                controllers:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      source:
+                        type: string
+                terragruntFile:
+                  type: string
                 extraEnvVariables:
                   type: array
                   items:
@@ -42,7 +55,7 @@ spec:
                         type: string
               required:
                 - crd
-                        
+
             status:
               type: object
               properties:

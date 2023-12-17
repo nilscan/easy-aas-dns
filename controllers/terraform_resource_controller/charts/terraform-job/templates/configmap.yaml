@@ -1,0 +1,20 @@
+# TODO: Add resource hierarchy
+# kopf.adopt([configmap], nested="spec.template", forced=True)
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Values.name }}-{{ .Release.Revision }} # Not using generateName as it's not supported by helm
+  labels:
+    managed-by: {{ .Values.managedBy }}
+data:
+  easyaas_resource_params.json: |
+{{ .Values.easyaasResourceParams | toJson | indent 4 }}
+  easyaas_resource.json: |
+{{ .Values.resource | toJson | indent 4 }}
+  easyaas_resource_meta.json: |
+{{ .Values.resourceMeta | toJson | indent 4 }}
+  easyaas_resource_spec.json: |
+{{ .Values.resourceSpec | toJson | indent 4 }}
+  terragrunt.hcl: |
+{{ .Values.terragrunt| indent 4 }}

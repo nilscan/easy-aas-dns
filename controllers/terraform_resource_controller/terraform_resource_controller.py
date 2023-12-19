@@ -34,45 +34,42 @@ def watch_terraformresource(spec, **_):
 # Reconcile creates/updates
 @kopf.on.create(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
 @kopf.on.update(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
-def on_change_terraformresource(**ctx):
-    # Run terragrunt job
-    create_job(**ctx)
+def on_change_terraformresource(namespace, name, body, meta, spec, **_):
+    # Read the terragrunt.hcl from file
+    with open('{}/files/terragrunt.hcl'.format(current_file_path()), 'r') as file:
+        terragrunt_config = file.read()
 
+    helm_values = {
+        'name': name,
+        'managedBy': MANAGED_BY,
+        'easyaasResourceParams': dict(terraformresource_config),
+        'resource': dict(body),
+        'resourceMeta': dict(meta),
 
-# Handle status updates from children
-@kopf.on.resume(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
-@kopf.on.update(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
-def on_status_update_terraformresource(patch, status, **ctx):
-    jobs = dict(status.get('jobs', {}))
-
-    conditions = status.get('conditions', [])
-    if 'status' not in patch:
-        patch['status'] = {}
-
-    # Update the conditions
-    ready_condition = {
-        'type': 'Ready',
-        'status': "False",
-        'reason': "Initializing",
-        'message': "",
+        # Inject additional values to the resource spec
+        # This will be added to the terraform.tfvars but doesn't cause issues
+        # if the template doesn't define the corresponding variables
+        'resourceSpec': dict(spec).update({
+            'metadataName':  meta.name,
+            'metadataNamespace': meta.namespace,
+            'metadataLabels': dict(meta.labels),
+            'metadataAnnotations': dict(meta.annotations),
+        }),
+        'terragrunt': terragrunt_config,
     }
-    for name, job in jobs.items():
-        if job.get('failed', None) == True:
-            ready_condition['status'] = 'False'
-            ready_condition['message'] = job['message']
-            ready_condition['reason'] = job['reason']
 
-    conditions = update_condition(conditions, ready_condition)
-
-    # Clean up finished jobs
-    for name, job in jobs.items():
-        if job.get('active', 0) == 0:
-            jobs[name] = None
-
-    patch['status'] = {
-        'conditions': conditions,
-        'jobs': jobs,
-    }
+    subprocess.run(
+        [
+            "helm", "upgrade", "--install",
+            "{}-{}".format(EASYAAS_PREFIX, name),
+            '{}/charts/terraform-job'.format(current_file_path()),
+            '--debug',
+            '--namespace', namespace,
+            '--values', '-', # Send values via stdin
+        ],
+        check=True,
+        input=json.dumps(helm_values).encode('utf-8'),
+    )
 
 
 # Reconcile deletes
@@ -89,40 +86,39 @@ def on_delete_terraformresource(namespace, name, **_):
     )
 
 
-def create_job(namespace, name, body, meta, spec, **_):
-    # Inject additional values to the resource spec
-    # This will be added to the terraform.tfvars but doesn't cause issues
-    # if the template doesn't define the corresponding variables
-    resource_spec = dict(spec)
-    resource_spec['metadataName'] = meta.name
-    resource_spec['metadataNamespace'] = meta.namespace
-    resource_spec['metadataLabels'] = dict(meta.labels)
-    resource_spec['metadataAnnotations'] = dict(meta.annotations)
+# Handle status updates from children
+@kopf.on.resume(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
+@kopf.on.update(WATCHED_RESOURCE_GROUP, WATCHED_RESOURCE_NAME)
+def on_status_update_terraformresource(patch, status, **_):
+    jobs = dict(status.get('jobs', {}))
 
-    # Read the terragrunt.hcl from file
-    # TODO: Embed in helm chart
-    with open('{}/files/terragrunt.hcl'.format(current_file_path()), 'r') as file:
-        terragrunt_config = file.read()
+    conditions = status.get('conditions', [])
+    if 'status' not in patch:
+        patch['status'] = {}
 
-    helm_values = {
-        'name': name,
-        'managedBy': MANAGED_BY,
-        'easyaasResourceParams': dict(terraformresource_config),
-        'resource': dict(body),
-        'resourceMeta': dict(meta),
-        'resourceSpec': resource_spec,
-        'terragrunt': terragrunt_config,
+    # Update the conditions
+    ready_condition = {
+        'type': 'Ready',
+        'status': 'False',
+        'reason': 'Initializing',
+        'message': '',
     }
+    for name, job in jobs.items():
+        if job.get('failed', None) == True:
+            ready_condition.update({
+                'status': 'False',
+                'reason': job['reason'],
+                'message': job['message'],
+            })
 
-    subprocess.run(
-        [
-            "helm", "upgrade", "--install",
-            "{}-{}".format(EASYAAS_PREFIX, name),
-            '{}/charts/terraform-job'.format(current_file_path()),
-            '--debug',
-            '--namespace', namespace,
-            '--values', '-', # Send values via stdin
-        ],
-        check=True,
-        input=json.dumps(helm_values).encode('utf-8'),
-    )
+    conditions = update_condition(conditions, ready_condition)
+
+    # Clean up finished jobs
+    for name, job in jobs.items():
+        if job.get('active', 0) == 0:
+            jobs[name] = None
+
+    patch['status'] = {
+        'conditions': conditions,
+        'jobs': jobs,
+    }

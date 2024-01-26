@@ -2,7 +2,8 @@
 apiVersion: rbac.authorization.k8s.io/v1
 kind: Role
 metadata:
-  name: {{ .Release.Name }}-job-base
+  name: {{ .Release.Name }}-job-terraform-backend
+  namespace: {{ .Release.Namespace }}
 rules:
   # Allow create and watch k8s secrets for the terraform backend
   - apiGroups:
@@ -50,12 +51,25 @@ rules:
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
-  name: {{ .Release.Name}}-jobs-base
+  name: {{ .Release.Name}}-jobs-terraform-backend
+  namespace: {{ .Release.Namespace }}
 roleRef:
   apiGroup: rbac.authorization.k8s.io
   kind: Role
-  name: {{ .Release.Name}}-job-base
+  name: {{ .Release.Name}}-job-terraform-backend
 subjects:
   - kind: ServiceAccount
-    name: {{ dig "serviceAccount" "default" .Values.easyaasResourceParams }}
+    name: {{ template "serviceAccount.name" . }}
     namespace: {{ .Release.Namespace }}
+
+---
+
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: {{ template "serviceAccount.name" . }}
+  namespace: {{ .Release.Namespace }}
+  annotations:
+{{ .Values.serviceAccount.annotations | toYaml | indent 4 }}
+  labels:
+{{ .Values.serviceAccount.labels | toYaml | indent 4 }}

@@ -4,7 +4,7 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: {{ .Values.name }}-{{ .Release.Revision }} # Not using generateName as it's not supported by helm
+  name: {{ .Release.Name }}-{{ .Release.Revision }} # Not using generateName as it's not supported by helm
   labels:
     managed-by: {{ .Values.managedBy }}
 data:

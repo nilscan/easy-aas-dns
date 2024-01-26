@@ -23,11 +23,11 @@ RUN TERRAGRUNT_URL="https://github.com/gruntwork-io/terragrunt/releases/download
     && chmod +x /usr/local/bin/terragrunt
 
 # Install tfswitch
-RUN curl -L https://raw.githubusercontent.com/warrensbox/terraform-switcher/release/install.sh | sh
+RUN curl -L --proto "=https" --tlsv1.2 https://raw.githubusercontent.com/warrensbox/terraform-switcher/release/install.sh | sh
 
 ADD run.sh /app/run.sh
 RUN chown 1001:1001 /app/run.sh && chmod +x /app/run.sh
-RUN mkdir -p $TERRAFORM_ROOT_DIR && chown tfuser:tfuser $TERRAFORM_ROOT_DIR
+RUN mkdir -p "${TERRAFORM_ROOT_DIR}" && chown tfuser:tfuser "${TERRAFORM_ROOT_DIR}"
 
 USER tfuser
 WORKDIR $TERRAFORM_ROOT_DIR

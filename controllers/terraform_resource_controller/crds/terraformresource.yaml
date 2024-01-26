@@ -44,6 +44,23 @@ spec:
                         type: string
                 terragruntFile:
                   type: string
+                iamRole:
+                  type: string
+                extraRoles:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      apiGroup:
+                        type: string
+                        default: rbac.authorization.k8s.io/v1
+                      kind:
+                        type: string
+                        default: Role
+                      name:
+                        type: string
+                      namespace:
+                        type: string
                 extraEnvVariables:
                   type: array
                   items:

@@ -1,7 +1,10 @@
-name: null
 managedBy: null
 easyaasResourceParams: {}
 resource: {}
 resourceMeta: {}
 resourceSpec: {}
 terragrunt: ""
+
+serviceAccount:
+  annotations: {}
+  labels: {}

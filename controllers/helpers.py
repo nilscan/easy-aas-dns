@@ -41,7 +41,7 @@ def update_condition(conditions, condition):
 
     return conditions
 
-def add_annotations(objs, annotations, nested=None, forced=False):
+def add_annotations(objs, annotations, nested=None, _forced=False):
     """
     Add metatada annotations to an object and optionally to nested parts of the object
     This mimics the kopf.adopt() and similar functions
@@ -73,7 +73,7 @@ def add_annotations(objs, annotations, nested=None, forced=False):
 
 
 
-def load_from_yaml(file, type: str=None):
+def load_from_yaml(file, vk: str=None):
     class K8sResponse():
         def __init__(self, data):
             if isinstance(data, str):
@@ -84,12 +84,12 @@ def load_from_yaml(file, type: str=None):
     obj_dict = yaml.safe_load(file)
     obj = K8sResponse(obj_dict)
 
-    if type is None:
+    if vk is None:
         version = obj_dict.get('apiVersion', '').split('/')[-1].upper()
         kind = obj_dict.get('kind')
-        type = "{}{}".format(version, kind)
+        vk = "{}{}".format(version, kind)
 
-    obj = kubernetes.client.ApiClient().deserialize(obj, type)
+    obj = kubernetes.client.ApiClient().deserialize(obj, vk)
     return obj
 
 def update_array(obj, where=None, value=None, path=None):

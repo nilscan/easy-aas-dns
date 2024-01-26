@@ -14,14 +14,14 @@ def configure(memo: kopf.Memo, settings: kopf.OperatorSettings, **_):
     print('starting up')
 
     # Log errors as k8s events
-    settings.posting.enabled = os.environ.get("EASYAAS_EVENT_ON_ERROR", "0") == "true"
-    settings.posting.level = int(os.environ.get("EASYAAS_LOG_LEVEL", logging.ERROR))
+    settings.posting.enabled = os.environ.get('EASYAAS_EVENT_ON_ERROR', '0') == 'true'
+    settings.posting.level = int(os.environ.get('EASYAAS_LOG_LEVEL', logging.ERROR))
 
     # Initialize the k8s client
     try:
         kubernetes.config.load_incluster_config()
     except kubernetes.config.ConfigException:
-        kubernetes.config.load_kube_config(config_file='~/.kube/config', context="k3d-easyaas")
+        kubernetes.config.load_kube_config(config_file='~/.kube/config', context='k3d-easyaas')
 
 
 # Read the resource config from the CR
@@ -60,12 +60,13 @@ def on_change_terraformresource(namespace, name, body, meta, spec, **_):
 
     subprocess.run(
         [
-            "helm", "upgrade", "--install",
-            "{}-{}".format(EASYAAS_PREFIX, name),
+            'helm', 'upgrade', '--install',
+            '{}-{}'.format(EASYAAS_PREFIX, name),
             '{}/charts/terraform-job'.format(current_file_path()),
             '--debug',
             '--namespace', namespace,
-            '--values', '-', # Send values via stdin
+            '--values=-', # Send values via stdin
+            '--wait=false'
         ],
         check=True,
         input=json.dumps(helm_values).encode('utf-8'),
@@ -77,8 +78,8 @@ def on_change_terraformresource(namespace, name, body, meta, spec, **_):
 def on_delete_terraformresource(namespace, name, **_):
     subprocess.run(
         [
-            "helm", "uninstall", 
-            "{}-{}".format(EASYAAS_PREFIX, name),
+            'helm', 'uninstall', 
+            '{}-{}'.format(EASYAAS_PREFIX, name),
             '--debug',
             '--namespace', namespace,
         ],

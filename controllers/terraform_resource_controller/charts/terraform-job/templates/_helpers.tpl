@@ -1,3 +1,7 @@
+{{- define "serviceAccount.name" -}}
+{{ .Release.Name }}-terraform-job
+{{- end }}
+
 {{/*
 Expand the name of the chart.
 */}}

@@ -1,8 +1,11 @@
 FROM python:3.9-slim
 
-ENV PYTHONPATH=/app
+RUN adduser --system --no-create-home nonroot
 
+ENV PYTHONPATH=/app
 RUN pip install poetry
+
+USER nonroot
 
 WORKDIR /app
 

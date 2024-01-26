@@ -24,7 +24,7 @@ def on_change(namespace, name, spec, **_):
     """
     # Install the helm chart
     # FIXME: This should be done in a job
-    [plural, *group] = spec['crd'].split('.')
+    [_plural, *group] = spec['crd'].split('.')
     group = '.'.join(group)
     subprocess.run(
         [
@@ -46,7 +46,7 @@ def on_change(namespace, name, spec, **_):
 
     This will delete the controller for the specified resource
     """
-    [plural, *group] = spec['crd'].split('.')
+    [_plural, *group] = spec['crd'].split('.')
     group = '.'.join(group)
     subprocess.run(
         [

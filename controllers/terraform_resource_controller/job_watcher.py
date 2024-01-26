@@ -9,13 +9,13 @@ from ..helpers import current_timestamp
 @kopf.on.event('batch/v1', 'job', labels={'managed-by': MANAGED_BY})
 def watch_job(logger, meta: kopf.Meta, namespace, name, status: kopf.Status, **_):
     # Get the owner resource
-    ownerRefs = meta.get('ownerReferences', {})
-    ctrlOwners = [ owner for owner in ownerRefs if owner.get('controller', False) == True ]
-    if len(ctrlOwners) != 1:
+    owner_refs = meta.get('ownerReferences', {})
+    ctrl_owners = [ owner for owner in owner_refs if owner.get('controller', False) == True ]
+    if len(ctrl_owners) != 1:
         logger.debug("No Controller owner found, skipping")
         return
     
-    owner = ctrlOwners[0]
+    owner = ctrl_owners[0]
     crdapi = kubernetes.client.CustomObjectsApi()
     (group, version) = owner.get('apiVersion', "").split("/")
 

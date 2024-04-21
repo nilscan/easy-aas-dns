@@ -6,13 +6,13 @@ spec:
   scope: Namespaced
   group: easyaas.dev
   names:
-    categories:
-      - easyaas
     kind: DnsRecord
-    plural: dnsrecords
     singular: dnsrecord
+    plural: dnsrecords
     shortNames:
       - dns
+    categories:
+      - easyaas
 
   versions:
     - name: v1
@@ -32,6 +32,10 @@ spec:
           type: string
           description: Reason why the record is not ready
           jsonPath: .status.conditions[?(@.type == 'Ready')].reason
+        - name: Age
+          type: string
+          description: Age
+          jsonPath: .metadata.creationTimestamp
       schema:
         openAPIV3Schema:
           type: object
@@ -43,6 +47,11 @@ spec:
                   type: string
                 type:
                   type: string
+                  enum:
+                    - A
+                    - AAAA
+                    - CNAME
+                    - TXT
                 records:
                   type: array
                   items:

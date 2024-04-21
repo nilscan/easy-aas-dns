@@ -23,11 +23,11 @@ spec:
           volumeMounts:
             - name: terragrunt-config
               mountPath: /app/terragrunt-config
-      serviceAccountName: {{ dig "serviceAccount" "default" .Values.easyaasResourceParams }}
+      serviceAccountName: {{ template "serviceAccount.name" . }}
       restartPolicy: Never
       volumes:
         - name: terragrunt-config
           configMap:
-            name:  {{ .Values.name }}-{{ .Release.Revision }}
+            name:  {{ .Release.Name }}-{{ .Release.Revision }}
   backoffLimit: 0
-  ttlSecondsAfterFinished: 0 # Job will be deleted by helm
+  ttlSecondsAfterFinished: null # Job will be deleted on the next helm run as per helm.sh/hook-delete-policy
